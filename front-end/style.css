@@ -1,0 +1,29 @@
+body {
+    overflow: hidden;
+}
+
+#title {
+    position: absolute;
+    left: 30vw;
+    text-align: center;
+    width: 40vw;
+    height: 5vh;
+    font-size: 2vh;
+    top: 0;
+}
+
+#map {
+    position: absolute;
+    width: 100vw;
+    height: 80vh;
+    left: 0;
+    top: 5vh;
+}
+
+#stats {
+    position: absolute;
+    width: 100vw;
+    left: 0;
+    top: 85vh;
+    height: 15vh;
+}
