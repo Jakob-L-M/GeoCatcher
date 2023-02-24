@@ -6,6 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gajraj+One&family=Tilt+Warp&display=swap" rel="stylesheet">
+
+
     <link rel="stylesheet" href="front-end/style.css">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
@@ -15,20 +21,28 @@
 
     <script language="javascript" type="text/javascript" src="front-end/client.js" defer></script>
 
-
     <title>GeoCatcher</title>
 </head>
 
 <body>
-    <div id="title">
-        <p>GeoCatcher</p>
+    <div id="header">
+        <p id="title" class="text">GeoCatcher</p>
+        <div id="players" class="number_stat  header_number"><p id="player_num">XX</p><img style="height: 4vmin;" src="front-end/assets/players.jpg"></div>
+        <div id="time_left" class="number_stat  header_number"><p id="time_num">??:??:??</p><img style="height: 4vmin;" src="front-end/assets/time.svg"></div>
+        <div id="points_left" class="number_stat  header_number"><img style="height: 4vmin;" src="front-end/assets/gray.png"><p id="left_num">XX</p></div>
+        <div id="points_claimed" class="number_stat  header_number"><img style="height: 4vmin;" src="front-end/assets/claimed.png"><p id="claimed_num">XX</p></div>
     </div>
     <div id="map">
 
     </div>
     <div id="stats">
-        <div class="team_stats" id="team1"></div>
-        <div class="team_stats" id="team2"></div>
+        <button id="shop" class="text">Shop</button>
+        <div class="team_stats" id="self">
+            <div id="power-ups"></div>
+            <p id="Points" class="text">????</p>
+            <p id="Place" class="text">????</p>
+        </div>
+        <div class="team_stats" id="others"></div>
     </div>
 
 </body>

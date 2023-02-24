@@ -2,22 +2,45 @@ body {
     overflow: hidden;
 }
 
-#title {
-    position: absolute;
-    left: 30vw;
-    text-align: center;
-    width: 40vw;
-    height: 5vh;
-    font-size: 2vh;
-    top: 0;
+p {
+    margin: 0;
+}
+#header {
+    position: relative;
+    display: grid;
+    grid-template-areas: 'players title points_claimed' 'time_left title points_left';
+    z-index: 3;
+    margin: auto;
+    padding: 0;
+    grid-template-columns: 20vmin 40vmin 20vmin;
+    width: 80vmin;
+}
+
+.number_stat {
+    font-family: 'Gajraj One', cursive;
+    font-size: 3vmin;
+    height: 4vmin;
+    padding-left: 1vmin;
+    padding-right: 1vmin;
+    margin: 0;
+    width: fit-content;
+    display: flex;
+    border: 2px solid black;
+}
+
+.text {
+    font-family: 'Tilt Warp', cursive;
+    width: 40vmin;
+    margin: 0;
 }
 
 #map {
     position: absolute;
     width: 100vw;
-    height: 80vh;
+    height: 85vh;
     left: 0;
-    top: 5vh;
+    top: 0vh;
+    z-index: 0;
 }
 
 #stats {
@@ -26,4 +49,47 @@ body {
     left: 0;
     top: 85vh;
     height: 15vh;
+}
+
+
+/* HEADER */
+
+#title {
+    font-size: 7vmin;
+    grid-area: title;
+    align-self: center;
+    justify-self: center;
+    border: 2px solid black;
+    background-color: rgb(255, 255, 255);
+}
+
+.header_number {
+    align-self: center;
+    background-color: rgb(255, 255, 255);
+}
+
+#players {
+    justify-self: end;
+    grid-area: players;
+}
+
+#player_num {
+    position: relative;
+}
+
+#time_left {
+    justify-self: end;
+    padding-top: 2px;
+    grid-area: time_left;
+}
+
+#points_left {
+    justify-self: start;
+    padding-top: 2px;
+    grid-area: points_left;
+}
+
+#points_claimed {
+    justify-self: start;
+    grid-area: points_claimed;
 }
