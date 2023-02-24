@@ -71,6 +71,13 @@ socket.on('receive_game_state', (game_state) => {
     };
 
     map.addLayer(markers)
+
+    // build header
+    document.getElementById('player_num').textContent = game_state.header.players
+    document.getElementById('left_num').textContent = game_state.header.unclaimed
+    document.getElementById('claimed_num').textContent = game_state.header.claimed
+    update_time(game_state.header.time_left)
+
 })
 
 function get_icon(team) {
@@ -92,4 +99,24 @@ function get_icon(team) {
 function claim_point(point_id, team) {
     console.log(`Claim ${point_id} for team ${team}`)
     socket.emit('claim_point', [point_id, team])
+}
+
+const delay = ms => new Promise(_ => setTimeout(_, ms));
+async function update_time(time) {
+    if (time == 0) {
+        //game ended
+    } else {
+        time -= 1
+        var hours = Math.floor(time / 3600);
+        var minutes = Math.floor((time - (hours * 3600)) / 60);
+        var seconds = time - (hours * 3600) - (minutes * 60);
+
+        if (hours < 10) { hours = "0" + hours; }
+        if (minutes < 10) { minutes = "0" + minutes; }
+        if (seconds < 10) { seconds = "0" + seconds; }
+
+        document.getElementById('time_num').textContent = '' + hours + ':' + minutes + ':' + seconds;
+        await delay(1000)
+        update_time(time)
+    }
 }
