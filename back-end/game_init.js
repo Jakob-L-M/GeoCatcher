@@ -15,30 +15,28 @@ function select_points(possible_points, center, n) {
     possible_points = shuffle(possible_points)
 
     let cords = []
-    possible_points.forEach(element => {
+    possible_points.every(element => {
         if (coordinate_distance(element, center) > MIN_DISTANCE_CENTER) {
             let add = true
-            cords.forEach(other_point => {
+            cords.every(other_point => {
                 if (coordinate_distance(element, other_point) < MIN_DISTANCE_POINTS) {
                     add = false
-                    return
+                    return false
                 }
+                return true
             })
             if (add) {
                 cords.push(element)
 
                 if (cords.length == n) {
-                    return
+                    return false
                 }
             }
         }
+        return true
     });
 
     points.cords = cords
-
-    // call power up assignment function
-
-    // call point function
 
     return points
 }
@@ -100,6 +98,51 @@ function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
 }
 
+function assign_scores(game_state) {
+    let scores = []
+
+    game_state.points.cords.forEach(element => {
+        // something with distances
+        scores.push(Math.floor(Math.random() * 1000) + 100)
+    })
+
+    return scores
+}
+
+function assign_power_ups(game_state) {
+    let power_ups = []
+
+    game_state.points.cords.forEach(element => {
+        let ups = []
+        
+        // power up 1
+        if (Math.random() < 0.2) {
+            ups.push(1)
+        }
+
+        // power up 1
+        if (Math.random() < 0.1) {
+            ups.push(2)
+        }
+
+        // power up 1
+        if (Math.random() < 0.4) {
+            ups.push(3)
+        }
+
+        // power up 1
+        if (Math.random() < 0.05) {
+            ups.push(4)
+        }
+
+        power_ups.push(ups)
+    })
+
+    return power_ups
+}
+
 module.exports = {
-    select_points
+    select_points,
+    assign_scores,
+    assign_power_ups
 }

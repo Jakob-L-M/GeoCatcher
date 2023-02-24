@@ -10,8 +10,8 @@ var game_state = {};
 
 // constant parameters
 const CITY = 'Marburg';
-const NUMBER_OF_TEAMS = 2;
-const NUMBER_OF_POINTS = 100;
+const NUMBER_OF_TEAMS = 3;
+const NUMBER_OF_POINTS = 40;
 
 app.use(express.static(`${__dirname}`));
 app.use(cors());
@@ -42,8 +42,12 @@ const server = http.createServer(app).listen(5050, function() {
         game_state.points = game_init.select_points(locations, data.center, NUMBER_OF_POINTS)
 
         // Assign scores and power-ups
-    
-        // init teams
+        game_state.points.scores = game_init.assign_scores(game_state)
+        game_state.points.power_ups = game_init.assign_power_ups(game_state)
+        
+        
+        // set all points as unclaimed
+        game_state.points.claimed = Array(NUMBER_OF_POINTS).fill(0)
     
         console.log('Ready');
     
@@ -65,6 +69,20 @@ io.sockets.on('connection', (socket) => {
     socket.on('get_game_state', () => {
         console.log('game state request')
         socket.emit('receive_game_state', game_state)
+    })
+
+    socket.on('claim_point', (d) => {
+        let point_id = d[0]
+        let team = d[1]
+
+        console.log(`Team ${team} claimed point ${point_id}`)
+        game_state.points.claimed[point_id] = team
+
+        //Todo:
+        // update team points and power-ups
+
+        // send an update to all players
+        io.emit('receive_game_state', game_state)
     })
 })
 
