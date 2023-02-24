@@ -31,14 +31,15 @@ const server = http.createServer(app).listen(5050, function() {
     var locations
     fs.readFile(`./data/${CITY}.json`, 'utf8', function(err, data) {
         if (err) throw err;
-        locations = JSON.parse(data);
+        data = JSON.parse(data);
+        locations = data.points
     
         console.log('Preparing game state')
 
         game_state.num_points = NUMBER_OF_POINTS
         
         // Select points
-        game_state.points = game_init.select_points(locations, NUMBER_OF_POINTS)
+        game_state.points = game_init.select_points(locations, data.center, NUMBER_OF_POINTS)
 
         // Assign scores and power-ups
     
