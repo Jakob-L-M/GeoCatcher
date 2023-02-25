@@ -52,18 +52,39 @@ socket.on('receive_game_state', (game_state) => {
 
     console.log(game_state)
 
-    for (let i = 0; i < game_state.num_points; i++) {
+    // build markers
+    update_markers(game_state.num_points, game_state.points)
+
+    // build header
+    update_header(game_state.header)
+    update_time(game_state.header.time_left)
+
+})
+
+socket.on('receive_header', (header) => {
+    update_header(header)
+});
+
+socket.on('receive_markers', (d) => {
+    let num_points = d[0]
+    let points = d[1]
+
+    update_markers(num_points, points)
+});
+
+function update_markers(num_points, points) {
+    for (let i = 0; i < num_points; i++) {
         // point structure:
         //  cords: lat, log
         //  claimed: Team name or None
         //  points: integer number of points the point awards
         //  power_ups: name of power-up or none
-        let marker = L.marker([game_state.points.cords[i][0], game_state.points.cords[i][1]], { icon: get_icon(game_state.points.claimed[i]) })
+        let marker = L.marker([points.cords[i][0], points.cords[i][1]], { icon: get_icon(points.claimed[i]) })
 
         // attach claim pop-up if not yet claimed
-        if (game_state.points.claimed[i] == 0) {
-            marker.bindPopup(`<b>Points:</b>${game_state.points.scores[i]}<br>
-                <b>Power-Ups:</b>${game_state.points.power_ups[i]}<br>
+        if (points.claimed[i] == 0) {
+            marker.bindPopup(`<b>Points:</b>${points.scores[i]}<br>
+                <b>Power-Ups:</b>${points.power_ups[i]}<br>
                 <button onclick="claim_point(${i}, 1)">Claim Red</button><button onclick="claim_point(${i}, 2)">Claim Blue</button><button onclick="claim_point(${i}, 3)">Claim Green</button>`)
         }
 
@@ -71,14 +92,13 @@ socket.on('receive_game_state', (game_state) => {
     };
 
     map.addLayer(markers)
+}
 
-    // build header
-    document.getElementById('player_num').textContent = game_state.header.players
-    document.getElementById('left_num').textContent = game_state.header.unclaimed
-    document.getElementById('claimed_num').textContent = game_state.header.claimed
-    update_time(game_state.header.time_left)
-
-})
+function update_header(header) {
+    document.getElementById('player_num').textContent = header.players
+    document.getElementById('left_num').textContent = header.unclaimed
+    document.getElementById('claimed_num').textContent = header.claimed
+}
 
 function get_icon(team) {
     if (team == 0) {

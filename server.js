@@ -68,11 +68,13 @@ io.sockets.on('connection', (socket) => {
 
     console.log(`new connection`)
     game_state.header.players += 1
+    io.emit('receive_header', game_state.header)
 
     socket.on('disconnect', () => {
 
         console.log(`disconnected`)
         game_state.header.players -= 1
+        io.emit('receive_header', game_state.header)
 
     });
 
@@ -87,11 +89,14 @@ io.sockets.on('connection', (socket) => {
         console.log(`Team ${team} claimed point ${point_id}`)
         game_state.points.claimed[point_id] = team
 
+        game_state.header.claimed += 1
+        game_state.header.unclaimed -= 1
         //Todo:
         // update team points and power-ups
 
         // send an update to all players
-        io.emit('receive_game_state', game_state)
+        io.emit('receive_header', game_state.header)
+        io.emit('receive_markers', [game_state.num_points, game_state.points])
     })
 })
 
