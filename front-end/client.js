@@ -45,7 +45,8 @@ var blue = L.icon({
 var markers = L.layerGroup();
 
 // request current game state from server and apply to map
-socket.emit('get_game_state')
+// using auth token
+socket.emit('auth', window.location.search.slice(4))
 
 socket.on('receive_game_state', (game_state) => {
     markers.clearLayers();

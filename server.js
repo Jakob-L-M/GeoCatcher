@@ -15,28 +15,46 @@ const NUMBER_OF_POINTS = 40 // number of positions to pick
 var claimed_points = 0
 var GAME_TIME = 18000 //total game time in seconds
 
+var USERS = JSON.parse(fs.readFileSync('./data/users.json', 'ascii'))
+var TEAMS = { 'Red': {}, 'Blue': {}, 'Green': {} }
+
 app.use(express.static(`${__dirname}`));
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.sendFile(`${__dirname}/front-end/index.html`)
+    if (req.url.length > 5) {
+        var id = ""
+        try {
+            id = `${req.url.slice(start = 5)}`
+        } catch {
+            console.log('Invalid user connection')
+            res.sendFile(`${__dirname}/front-end/denied.html`)
+        } finally {
+            if (USERS[id] != undefined) {
+                res.sendFile(`${__dirname}/front-end/index.html`)
+            } else {
+                console.log('Invalid user connection')
+                res.sendFile(`${__dirname}/front-end/denied.html`)
+            }
+        }
+    }
 })
 
 app.get('/front-end/*', (req, res) => {
     res.sendFile(`${__dirname}${req.url}`)
 })
 
-const server = http.createServer(app).listen(5050, function() {
-    console.log("Express server listening on port 5050");
+const server = http.createServer(app).listen(5050, function () {
+    console.log("[INIT] Server listening on port 5050");
 
     // read-in city file
     var locations
-    fs.readFile(`./data/${CITY}.json`, 'utf8', function(err, data) {
+    fs.readFile(`./data/${CITY}.json`, 'utf8', function (err, data) {
         if (err) throw err;
         data = JSON.parse(data);
         locations = data.points
 
-        console.log('Preparing game state')
+        console.log('[INIT] Preparing game state')
 
         game_state.num_points = NUMBER_OF_POINTS
 
@@ -56,8 +74,7 @@ const server = http.createServer(app).listen(5050, function() {
 
         // decrease time continuously
         decrease_time_left()
-
-        console.log('Ready');
+        console.log(`[INIT] Game started at ${new Date().toTimeString()}`);
 
     });
 });
@@ -66,38 +83,50 @@ const io = require('socket.io')(server)
 
 io.sockets.on('connection', (socket) => {
 
-    console.log(`new connection`)
-    game_state.header.players += 1
-    io.emit('receive_header', game_state.header)
+    // check auth
+    socket.on('auth', (auth) => {
+        if (USERS[auth] === undefined) {
+            return
+        } else {
+            console.log(`[INFO] ${USERS[auth]} connected`)
+            var socket_id = auth
+            socket.emit('receive_game_state', game_state)
 
-    socket.on('disconnect', () => {
+            // check team membership
+            game_state.header.players += 1
+            io.emit('receive_header', game_state.header)
 
-        console.log(`disconnected`)
-        game_state.header.players -= 1
-        io.emit('receive_header', game_state.header)
+            socket.on('disconnect', () => {
 
-    });
+                console.log(`disconnected`)
+                game_state.header.players -= 1
+                io.emit('receive_header', game_state.header)
 
-    socket.on('get_game_state', () => {
-        socket.emit('receive_game_state', game_state)
+            });
+
+            socket.on('claim_point', (d) => {
+                let point_id = d[0]
+                let team = d[1]
+
+                console.log(`[INFO] ${USERS[socket_id]} claimed point ${point_id}`)
+                game_state.points.claimed[point_id] = team
+
+                game_state.header.claimed += 1
+                game_state.header.unclaimed -= 1
+                //Todo:
+                // update team points and power-ups
+
+                // send an update to all players
+                io.emit('receive_header', game_state.header)
+                io.emit('receive_markers', [game_state.num_points, game_state.points])
+
+
+
+            })
+        }
+
     })
 
-    socket.on('claim_point', (d) => {
-        let point_id = d[0]
-        let team = d[1]
-
-        console.log(`Team ${team} claimed point ${point_id}`)
-        game_state.points.claimed[point_id] = team
-
-        game_state.header.claimed += 1
-        game_state.header.unclaimed -= 1
-        //Todo:
-        // update team points and power-ups
-
-        // send an update to all players
-        io.emit('receive_header', game_state.header)
-        io.emit('receive_markers', [game_state.num_points, game_state.points])
-    })
 })
 
 server.on('error', (err) => {
