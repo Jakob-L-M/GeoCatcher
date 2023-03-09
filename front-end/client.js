@@ -1,5 +1,6 @@
 var socket = io({ transports: ['websocket', 'polling'] });
 
+const user_id = window.location.search.slice(4)
 
 // init map
 var map = L.map('map').setView([50.80843714789987, 8.772417038548456], 15);
@@ -44,10 +45,14 @@ var blue = L.icon({
 
 var markers = L.layerGroup();
 
+// dict to save information about users locally
+var users = {}
+
 // request current game state from server and apply to map
 // using auth token
-socket.emit('auth', window.location.search.slice(4))
+socket.emit('auth', user_id)
 
+// event emmited on a fresh reload
 socket.on('receive_game_state', (game_state) => {
     markers.clearLayers();
 
@@ -60,6 +65,16 @@ socket.on('receive_game_state', (game_state) => {
     update_header(game_state.header)
     update_time(game_state.header.time_left)
 
+    getLocation()
+
+})
+
+socket.on('user_info', (d) => {
+    users = {...d}
+    console.log(users)
+    for (u in users) {
+        users[u]['marker'] = L.marker([0,0]).addTo(map)
+    }
 })
 
 socket.on('receive_header', (header) => {
@@ -72,6 +87,12 @@ socket.on('receive_markers', (d) => {
 
     update_markers(num_points, points)
 });
+
+socket.on('user_positions', (d) => {
+    for (u in d) {
+        users[u]['marker'].setLatLng(new L.LatLng(d[u][0], d[u][1]))
+    }
+})
 
 function update_markers(num_points, points) {
     for (let i = 0; i < num_points; i++) {
@@ -140,4 +161,19 @@ async function update_time(time) {
         await delay(1000)
         update_time(time)
     }
+}
+
+function getLocation() {
+    console.log('getting position')
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition)
+        navigator.geolocation.watchPosition(showPosition);
+    } else {
+        console.log('ASDASD')
+        socket.emit('update_location', "Geolocation is not supported by this browser.");
+    }
+}
+function showPosition(position) {
+    console.log('sending position', position)
+    socket.emit('update_location', [position.coords.latitude, position.coords.longitude, position.coords.accuracy]);
 }

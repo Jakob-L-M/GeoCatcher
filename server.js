@@ -2,7 +2,7 @@ const http = require('http');
 const express = require('express');
 const cors = require('cors');
 var fs = require('fs');
-var game_init = require('./back-end/game_init.js')
+var game_init = require('./back-end/game_init.js');
 
 const app = express();
 
@@ -10,15 +10,32 @@ var game_state = {};
 
 // constant parameters
 const CITY = 'Marburg';
-const NUMBER_OF_TEAMS = 3 // number of teams present
-const NUMBER_OF_POINTS = 40 // number of positions to pick
+const NUMBER_OF_POINTS = 60 // number of positions to pick
 var claimed_points = 0
 var GAME_TIME = 18000 //total game time in seconds
 
 var USERS = JSON.parse(fs.readFileSync('./data/users.json', 'ascii'))
-var TEAMS = { 'Red': {}, 'Blue': {}, 'Green': {} }
+var TEAMS = JSON.parse(fs.readFileSync('./data/teams.json', 'ascii'))
 
-app.use(express.static(`${__dirname}`));
+for (t in TEAMS) {
+    for (ind in TEAMS[t]['users']) {
+        USERS[TEAMS[t]['users'][ind]]['team'] = t
+    }
+}
+
+let c = 0
+var compressed_ids = {}
+
+for (u in USERS) {
+    USERS[u]['location'] = [0.0, 0.0] // last known lat, lon position
+    USERS[u]['path'] = [] // list of timestamp, location tuples representing their path
+    compressed_ids[u] = c++
+}
+
+console.log(USERS)
+console.log(compressed_ids)
+
+// app.use(express.static(`${__dirname}`));
 app.use(cors());
 
 app.get('/', (req, res) => {
@@ -42,6 +59,11 @@ app.get('/', (req, res) => {
 
 app.get('/front-end/*', (req, res) => {
     res.sendFile(`${__dirname}${req.url}`)
+})
+
+// fix data request
+app.get('/data/*', (req, res) => {
+    res.sendFile(`${__dirname}/front-end/denied.html`)
 })
 
 const server = http.createServer(app).listen(5050, function () {
@@ -91,14 +113,19 @@ io.sockets.on('connection', (socket) => {
             console.log(`[INFO] ${USERS[auth]} connected`)
             var socket_id = auth
             socket.emit('receive_game_state', game_state)
+            socket.emit('user_info', send_user_info())
 
             // check team membership
             game_state.header.players += 1
             io.emit('receive_header', game_state.header)
 
+
+            // send info about user locations
+            io.emit('user_positions', send_user_positions(false, [USERS[auth]['team']]))
+
             socket.on('disconnect', () => {
 
-                console.log(`disconnected`)
+                console.log(`[INFO] ${USERS[auth]} disconnected`)
                 game_state.header.players -= 1
                 io.emit('receive_header', game_state.header)
 
@@ -123,6 +150,39 @@ io.sockets.on('connection', (socket) => {
 
 
             })
+
+            socket.on('update_location', (d) => {
+                // let lat = d['coords']['latitude']
+                // let lon = d.coords.longitude
+                // let acc = d.coords.accuracy
+                let timestamp = Math.floor(Date.now() / 1000)
+
+                let acc = d[2]
+                let lon = d[0]
+                let lat = d[1]
+
+                if (acc > 40) return
+
+                USERS[auth]['location'] = [lon, lat]
+
+                let path = USERS[auth]['path']
+                if (path.length == 0) {
+                    path.push([timestamp, lon, lat])
+                } else if (timestamp - path[path.length - 1][0] > 20) {
+                    // last update is at least 20 seconds old
+                    // only add if the location changed
+                    // I assume a change will always be seen in lon AND lat
+                    if (path[path.length - 1][0] != lon) {
+                        path.push([timestamp, lon, lat])
+                    } else {
+                        return
+                    }
+                } else {
+                    return
+                }
+                console.log(`[INFO] new location for ${USERS[auth].name}: ${lon, lat} ${timestamp}`)
+                io.emit('user_positions', send_user_positions([USERS[auth]['team']]))
+            })
         }
 
     })
@@ -145,4 +205,37 @@ async function decrease_time_left() {
         await delay(1000)
         decrease_time_left();
     }
+}
+
+function send_user_positions(all = false, teams=[]) {
+    result = {}
+
+    // if all users are requested.
+    // usually an admin only event
+    if (all) {
+        for (u in USERS) {
+            result[compressed_ids[u]] = USERS[u]['location']
+        }
+        return result
+    }
+
+    // return all teams requested.
+    // is either only your own team or all teams (power-up)
+    teams.forEach(team => {
+        TEAMS[team]['users'].forEach(u =>  {
+            result[compressed_ids[u]] = USERS[u]['location']
+        })
+    })
+
+    return result
+}
+
+function send_user_info() {
+    result = {}
+    for (team in TEAMS) {
+        TEAMS[team]['users'].forEach(u => {
+            result[compressed_ids[u]] = {'name': USERS[u]['name'], 'team': USERS[u]['team']}
+        })
+    }
+    return result
 }
