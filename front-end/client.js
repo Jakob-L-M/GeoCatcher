@@ -1,4 +1,4 @@
-var socket = io({ transports: ['websocket', 'polling'] });
+var socket = io('ws://geocatcher.jakob-l-m.de');
 
 const user_id = window.location.search.slice(4)
 

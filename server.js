@@ -6,6 +6,9 @@ var game_init = require('./back-end/game_init.js');
 
 const app = express();
 
+//app.use(express.static(`${__dirname}`));
+app.use(cors());
+
 var game_state = {};
 
 // constant parameters
@@ -35,8 +38,6 @@ for (u in USERS) {
 console.log(USERS)
 console.log(compressed_ids)
 
-// app.use(express.static(`${__dirname}`));
-app.use(cors());
 
 app.get('/', (req, res) => {
     if (req.url.length > 5) {
