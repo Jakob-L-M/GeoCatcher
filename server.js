@@ -132,17 +132,19 @@ io.sockets.on('connection', (socket) => {
 
             });
 
-            socket.on('claim_point', (d) => {
-                let point_id = d[0]
-                let team = d[1]
+            socket.on('claim_point', (point_id) => {
 
-                console.log(`[INFO] ${USERS[socket_id]} claimed point ${point_id}`)
-                game_state.points.claimed[point_id] = team
+                // do not do anything if point has already been claimed
+                if (game_state.points.claimed[point_id] != 0) return
+
+                // TODO: check if distance is less than 25 meters
+
+                console.log(`[INFO] ${USERS[socket_id].name} claimed point ${point_id}`)
+                game_state.points.claimed[point_id] = USERS[socket_id].team
 
                 game_state.header.claimed += 1
                 game_state.header.unclaimed -= 1
-                //Todo:
-                // update team points and power-ups
+                // TODO: update team points and power-ups
 
                 // send an update to all players
                 io.emit('receive_header', game_state.header)
@@ -169,8 +171,8 @@ io.sockets.on('connection', (socket) => {
                 let path = USERS[auth]['path']
                 if (path.length == 0) {
                     path.push([timestamp, lon, lat])
-                } else if (timestamp - path[path.length - 1][0] > 20) {
-                    // last update is at least 20 seconds old
+                } else if (timestamp - path[path.length - 1][0] > 10) {
+                    // last update is at least 10 seconds old
                     // only add if the location changed
                     // I assume a change will always be seen in lon AND lat
                     if (path[path.length - 1][0] != lon) {

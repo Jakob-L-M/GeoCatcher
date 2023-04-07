@@ -1,4 +1,5 @@
-var socket = io('ws://geocatcher.jakob-l-m.de');
+// var socket = io('ws://geocatcher.jakob-l-m.de');
+var socket = io();
 
 const user_id = window.location.search.slice(4)
 
@@ -52,7 +53,7 @@ var users = {}
 // using auth token
 socket.emit('auth', user_id)
 
-// event emmited on a fresh reload
+// event emitted on a fresh reload
 socket.on('receive_game_state', (game_state) => {
     markers.clearLayers();
 
@@ -107,7 +108,7 @@ function update_markers(num_points, points) {
         if (points.claimed[i] == 0) {
             marker.bindPopup(`<b>Points:</b>${points.scores[i]}<br>
                 <b>Power-Ups:</b>${points.power_ups[i]}<br>
-                <button onclick="claim_point(${i}, 1)">Claim Red</button><button onclick="claim_point(${i}, 2)">Claim Blue</button><button onclick="claim_point(${i}, 3)">Claim Green</button>`)
+                <button onclick="claim_point(${i})">Claim</button>`)
         }
 
         markers.addLayer(marker)
@@ -126,21 +127,21 @@ function get_icon(team) {
     if (team == 0) {
         return gray
     }
-    if (team == 1) {
+    if (team == "red") {
         return red
     }
-    if (team == 2) {
+    if (team == "blue") {
         return blue
     }
-    if (team == 3) {
+    if (team == "green") {
         return green
     }
 
 }
 
-function claim_point(point_id, team) {
-    console.log(`Claim ${point_id} for team ${team}`)
-    socket.emit('claim_point', [point_id, team])
+function claim_point(point_id) {
+    console.log(`Claimed ${point_id}`)
+    socket.emit('claim_point', point_id)
 }
 
 const delay = ms => new Promise(_ => setTimeout(_, ms));
