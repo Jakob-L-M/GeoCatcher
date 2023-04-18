@@ -14,7 +14,22 @@ function select_points(possible_points, center, n) {
     // shuffle points
     possible_points = shuffle(possible_points)
 
-    let cords = []
+    // initially filled with fixed points
+    let cords = [
+        [50.8098855, 8.7676658134],
+        [50.810114, 8.763962],
+        [50.81488, 8.76937],
+        [50.818978, 8.774321],
+        [50.808599, 8.775464],
+        [50.79495, 8.763088],
+        [50.802945, 8.763742],
+        [50.812704, 8.772497],
+        [50.808952, 8.770518],
+        [50.7979, 8.753464],
+        [50.803728, 8.772433],
+        [50.802121, 8.785388],
+        [50.814975, 8.788553]
+    ]
     possible_points.every(element => {
         if (coordinate_distance(element, center) > MIN_DISTANCE_CENTER) {
             let add = true
@@ -114,23 +129,23 @@ function assign_power_ups(game_state) {
 
     game_state.points.cords.forEach(element => {
         let ups = []
-        
+
         // power up 1
-        if (Math.random() < 0.2) {
+        if (Math.random() < 0.6) {
             ups.push(1)
         }
 
-        // power up 1
+        // power up 2
         if (Math.random() < 0.1) {
             ups.push(2)
         }
 
-        // power up 1
+        // power up 3
         if (Math.random() < 0.4) {
             ups.push(3)
         }
 
-        // power up 1
+        // power up 4
         if (Math.random() < 0.05) {
             ups.push(4)
         }
